@@ -61,13 +61,35 @@
             cursor: pointer;
             transition: color 0.3s;
             text-decoration: none;
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1em;
             font-weight: 300;
-            text-align: center;
             width: 100%;
         }
-     .button:hover { color: #ff4e4e; }
+        .button-text {
+            position: relative;
+        }
+        .icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            transition: filter 0s;
+        }
+        #gh {
+            width: 34px;
+            height: 34px;
+        }
+
+        .button:hover {
+            color: #ff4e4e;
+        }
+
+        .button:hover .icon {
+            filter: brightness(0) saturate(100%) invert(50%) sepia(80%) saturate(4605%) hue-rotate(334deg) brightness(114%) contrast(113%);
+        }
         #music-container {
             position: fixed;
             left: 0;
@@ -88,7 +110,7 @@
         #play-button, #now-playing {
             display: inline-block;
             padding: 0 20px;
-            animation: scroll-text 5s linear infinite; /* Fast scroll */
+            animation: scroll-text 5s linear infinite;
         }
         #music-border-left, #music-border-right {
             position: absolute;
@@ -128,9 +150,18 @@
 | (_) |  \ V /  | (_| | | | | |
  \___/    \_/    \__,_| |_| |_|
                 <div class="button-container">
-                    <a href="https://twitter.com/ovahslits" id="twitter-button" class="button" target="_blank">twitter.com/ovahslits</a>
-                    <a href="https://discord.gg/hdQPG44SAY" id="discord-button" class="button" target="_blank">.gg/hdQPG44SAY</a>
-                    <a href="https://github.com/ov-ah" id="github-button" class="button" target="_blank">github.com/ov-ah</a>
+                    <a href="https://twitter.com/ovahslits" id="twitter-button" class="button" target="_blank">
+                        <img src="twitter-icon.png" alt="Twitter" class="icon"> 
+                        <span class="button-text">twitter.com/ovahslits</span>
+                    </a>
+                    <a href="https://discord.gg/hdQPG44SAY" id="discord-button" class="button" target="_blank">
+                        <img src="discord-icon.png" alt="Discord" class="icon"> 
+                        <span class="button-text">.gg/hdQPG44SAY</span>
+                    </a>
+                    <a href="https://github.com/ov-ah" id="github-button" class="button" target="_blank">
+                        <img src="github-icon.png" alt="GitHub" class="icon" id="gh"> 
+                        <span class="button-text">github.com/ov-ah</span>
+                    </a>                    
                 </div>
             </div>
             <div class="image-container">

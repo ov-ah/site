@@ -86,10 +86,6 @@ html {
   margin-top: 45px;
 }
 
-#buttons-button .button-text {
-  outline: 1px solid #f8f8f27a;
-}
-
 #buttons-button .button-text:hover {
   outline: 1px solid #ff4e4e6e;
   border-radius: 2px;
@@ -201,25 +197,19 @@ canvas {
 
 .construction-container {
   z-index: 4;
+  justify-content: center;
+  position: absolute;
+  top: 25px;
 }
 
 .construction-container * {
-  position: absolute;
-  top: 5%;
-  opacity: 50%;
-  width: 75px;
-}
-
-.construction-left {
-  left: 2%;
-}
-
-.construction-right {
-  right: 2%;
+  opacity: 75%;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 #buttons-button {
-  position: relative; /* Make sure the button is a positioned element */
+  position: relative;
   margin-top: 45px;
 }
 

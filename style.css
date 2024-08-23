@@ -31,17 +31,6 @@ html {
   text-align: center;
 }
 
-.image-container {
-  position: absolute;
-  top: 60%;
-  right: 0;
-  z-index: 2;
-}
-
-.anime-girl {
-  max-height: 40vh;
-  object-fit: contain;
-}
 
 #ascii-art {
   font-size: 0.9em;
@@ -166,4 +155,46 @@ html {
 
 canvas {
   display: block;
+}
+
+.spinning-text {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1em;
+  font-weight: bold;
+  color: #ff4e4e;
+  animation: flip 4s infinite;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  z-index: 4;
+}
+
+@keyframes flip {
+  0% {
+    transform: translateX(-50%) rotateY(0deg);
+  }
+  50% {
+    transform: translateX(-50%) rotateY(180deg);
+  }
+  100% {
+    transform: translateX(-50%) rotateY(360deg);
+  }
+}
+
+.construction-container {
+  z-index: 3;
+}
+
+.construction-left {
+  position: absolute;
+  top: 1%;
+  left: 1%;
+}
+
+.construction-right {
+  position: absolute;
+  top: 1%;
+  right: 1%;
 }

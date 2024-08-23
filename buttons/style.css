@@ -26,15 +26,13 @@ html {
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  box-sizing: border-box;
-  position: relative;
-  background-color: #00000031;
+  background-color: #0000008f;
   z-index: 3;
-  width: 69rem;
+  width: 100%; /* Ensure full width */
+  text-align: center;
 }
 
 .matrix-bg {
@@ -53,30 +51,9 @@ canvas {
   display: block;
 }
 
-.content-text {
-    position: fixed;
-    top: 30%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 16px;
-    color: #ff4e4e;
-    animation: flip 4s infinite;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    z-index: 4;
-    text-shadow: 
-          -1px -1px 0px black, 
-           1px -1px 0px black, 
-          -1px  1px 0px black, 
-           1px  1px 0px black;
-  }
-
 .spinning-text {
-  position: fixed;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 16px;
+  padding-top: 100px;
+  font-size: 18px;
   color: #ff4e4e;
   animation: flip 4s infinite;
   transform-style: preserve-3d;
@@ -93,7 +70,65 @@ canvas {
     width: 26rem;
     background-color: #ffffffa6;
     height: 1px;
-    position: fixed;
-    top: 25%;
+    margin-top: 20px;
     outline: 1px solid #000000a9;
+}
+
+.content-text {
+  padding-top: 20px;
+  font-size: 16px;
+  color: #ffffff;
+  animation: flip 4s infinite;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  z-index: 4;
+  text-shadow: 
+        -1px -1px 0px black, 
+         1px -1px 0px black, 
+        -1px  1px 0px black, 
+         1px  1px 0px black;
+}
+
+.mbutt {
+  padding-top: 1rem;
+}
+
+.mbutt img {
+  width: 88px; /* Width of the image */
+  height: 31px; /* Height of the image */
+}
+
+.btn {
+  display: block;
+  width: 88px; /* Width of the image */
+  height: 31px; /* Height of the image */
+  background-size: cover;
+  background-repeat: no-repeat;
+  text-align: center;
+  line-height: 31px; /* Align text vertically */
+  color: transparent; /* Hide text */
+  text-decoration: none;
+}
+
+.btn img {
+  width: 100%;
+  height: 100%;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, 88px); /* 4 columns, each 88px wide */
+  grid-auto-rows: 31px; /* Row height */
+  grid-gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  width: auto; /* Adjust width based on content */
+  max-width: 1000px; /* Limit the width of the grid container */
+  margin-top: 1rem; /* Space between the mbutt image and grid */
+}
+
+.grid-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

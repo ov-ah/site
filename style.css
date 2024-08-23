@@ -65,6 +65,8 @@ html {
 
 .button-text {
   position: relative;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .icon {
@@ -214,4 +216,42 @@ canvas {
 
 .construction-right {
   right: 2%;
+}
+
+#buttons-button {
+  position: relative; /* Make sure the button is a positioned element */
+  margin-top: 45px;
+}
+
+.new-indicator {
+  position: absolute;
+  font-size: 1em;
+  color: #ff4e4e;
+  font-weight: bold;
+  animation: flash 0.5s infinite;
+  white-space: nowrap;
+}
+
+.new-indicator.left {
+  left: 40px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.new-indicator.right {
+  right: 40px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@keyframes flash {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 1;
+  }
 }

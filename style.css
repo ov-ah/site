@@ -177,7 +177,6 @@ canvas {
   left: 50%;
   transform: translateX(-50%);
   font-size: 1em;
-  font-weight: bold;
   color: #ff4e4e;
   animation: flip 4s infinite;
   transform-style: preserve-3d;

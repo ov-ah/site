@@ -31,7 +31,7 @@ html {
   padding: 20px;
   background-color: #0000008f;
   z-index: 3;
-  width: 100%; /* Ensure full width */
+  width: 100%; 
   text-align: center;
 }
 
@@ -94,19 +94,19 @@ canvas {
 }
 
 .mbutt img {
-  width: 88px; /* Width of the image */
-  height: 31px; /* Height of the image */
+  width: 88px; 
+  height: 31px; 
 }
 
 .btn {
   display: block;
-  width: 88px; /* Width of the image */
-  height: 31px; /* Height of the image */
+  width: 88px; 
+  height: 31px; 
   background-size: cover;
   background-repeat: no-repeat;
   text-align: center;
-  line-height: 31px; /* Align text vertically */
-  color: transparent; /* Hide text */
+  line-height: 31px; 
+  color: transparent; 
   text-decoration: none;
 }
 
@@ -117,14 +117,14 @@ canvas {
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(4, 88px); /* 4 columns, each 88px wide */
-  grid-auto-rows: 31px; /* Row height */
+  grid-template-columns: repeat(6, 88px); 
+  grid-auto-rows: 31px; 
   grid-gap: 1rem;
   justify-content: center;
   align-items: center;
-  width: auto; /* Adjust width based on content */
-  max-width: 1000px; /* Limit the width of the grid container */
-  margin-top: 1rem; /* Space between the mbutt image and grid */
+  width: auto; 
+  max-width: 1000px; 
+  margin-top: 1rem; 
 }
 
 .grid-item {

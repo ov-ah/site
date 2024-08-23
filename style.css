@@ -5,7 +5,7 @@ html {
   height: 100%;
   background-color: #000000;
   color: #ff4e4e;
-  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-family: 'ProggyCleanTT', sans-serif;
   overflow: hidden;
 }
 
@@ -47,6 +47,7 @@ html {
 
 .button {
   background-color: transparent;
+  font-family: 'ProggyCleanTT', sans-serif;
   color: #f8f8f2;
   border: none;
   padding: 10px 20px;
@@ -169,17 +170,18 @@ canvas {
   transform-style: preserve-3d;
   perspective: 1000px;
   z-index: 4;
+  text-shadow: 0 0 10px #ff4e4e;
 }
 
 @keyframes flip {
   0% {
-    transform: translateX(-50%) rotateY(0deg);
+    transform: translateX(- 50%) rotateY(0deg);
   }
   50% {
-    transform: translateX(-50%) rotateY(180deg);
+    transform: translateX(-50%) rotateY(-180deg);
   }
   100% {
-    transform: translateX(-50%) rotateY(360deg);
+    transform: translateX(-50%) rotateY(-360deg);
   }
 }
 
@@ -187,14 +189,17 @@ canvas {
   z-index: 3;
 }
 
-.construction-left {
+.construction-container * {
   position: absolute;
-  top: 1%;
-  left: 1%;
+  top: 5%;
+  opacity: 50%;
+  width: 75px;
+}
+
+.construction-left {
+  left: 2%;
 }
 
 .construction-right {
-  position: absolute;
-  top: 1%;
-  right: 1%;
+  right: 2%;
 }

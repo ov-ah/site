@@ -80,6 +80,19 @@ html {
   height: 34px;
 }
 
+#buttons-button {
+  margin-top: 45px;
+}
+
+#buttons-button .button-text {
+  outline: 1px solid #f8f8f27a;
+}
+
+#buttons-button .button-text:hover {
+  outline: 1px solid #ff4e4e6e;
+  border-radius: 2px;
+}
+
 .button:hover {
   color: #ff4e4e;
 }

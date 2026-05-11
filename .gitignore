@@ -1,1 +1,6 @@
 target/
+backend/target/
+backend/chat.db
+backend/chat.db-journal
+backend/chat.db-wal
+backend/chat.db-shm

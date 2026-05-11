@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width", initial-scale="1.0" />
+	<link rel="stylesheet" href="/styles.css">
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+	<title>ovah.dev</title>
+</head>
+<body>
+<div class = "app">
+	<header class="topbar">
+		<span class="topbar-logo">ovah.dev</span>
+	</header>
+	<main class="main">
+		<div class="messages" id="messages">
+			<div class="date-divider">Sunday, May 10</div>
+			<div class="msg-group new-sender">
+				<div class="msg-body">
+					<div class="msg-meta">
+						<span class="msg-author accent">user1</span>
+						<span class="msg-time">08:34</span>
+					</div>
+					<div class="msg-text">This is a dummy message. Hello from user1!</div>
+				</div>
+			</div>
+			<div class="msg-group new-sender">
+				<div class="msg-body">
+					<div class="msg-meta">
+						<span class="msg-author accent">user2</span>
+						<span class="msg-time">08:38</span>
+					</div>
+					<div class="msg-text">This is also a dummy message. - Hello from newline user2!</div>
+				</div>
+			</div>
+		</div>
+		<div class="input-area">
+			<div class="input-box">
+				<span class="input-prompt">>~$</span>
+				<textarea id="msg-input" placeholder="Message" rows="1"></textarea>
+				<button class="send-btn" id="send-btn" title="Send">&#10148;</button>
+			</div>
+			<div class="input-hint">enter to send &nbsp;·&nbsp; shift+enter for newline</div>
+		</div>
+	</main>
+</div>
+</body>
+</html>

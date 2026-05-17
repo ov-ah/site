@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>ovah.dev</title>
+	<title>ovah.dev · chat</title>
 	<link rel="stylesheet" href="../styles.css">
 </head>
 
@@ -22,8 +22,25 @@
 		</nav>
 		<section>
 			<p>
-				ovah.dev has the best chat trust! you can use it below.
+				ovah.dev has the best chat trust! pick a name and say something.
 			</p>
+		</section>
+		<section class="chat">
+			<div class="chat-status" id="chat-status">connecting...</div>
+			<div class="chat-messages" id="chat-messages">
+				<p class="chat-empty">loading history...</p>
+			</div>
+			<form class="chat-form" id="chat-form" autocomplete="off">
+				<label class="chat-field">
+					<span>name</span>
+					<input type="text" id="chat-user" maxlength="32" placeholder="anon" required>
+				</label>
+				<label class="chat-field chat-field-grow">
+					<span>say</span>
+					<input type="text" id="chat-text" maxlength="500" placeholder="..." required>
+				</label>
+				<button type="submit" id="chat-send">send</button>
+			</form>
 		</section>
 		<footer>
 			<p>
@@ -44,6 +61,7 @@
 			</p>
 		</footer>
 	</div>
+	<script src="chat.js"></script>
 </body>
 
 </html>

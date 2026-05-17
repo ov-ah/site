@@ -79,6 +79,143 @@ nav {
 	gap: 20px;
 }
 
+.chat {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.chat-status {
+	font-size: 14px;
+	color: var(--muted-text-color);
+}
+
+.chat-status.connected::before {
+	content: "● ";
+	color: var(--palette-dragon);
+}
+
+.chat-status.disconnected::before {
+	content: "○ ";
+}
+
+.chat-messages {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-height: 300px;
+	max-height: 500px;
+	overflow-y: auto;
+	padding: 15px;
+	border: 1px solid var(--text-color);
+	background-color: var(--background-color);
+}
+
+.chat-empty {
+	margin: 0;
+	opacity: 0.5;
+	font-style: italic;
+}
+
+.chat-msg {
+	margin: 0;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+.chat-msg .chat-meta {
+	color: var(--muted-text-color);
+	font-size: 13px;
+	margin-right: 8px;
+}
+
+.chat-msg .chat-user {
+	color: var(--link-color-dark);
+	font-weight: bold;
+}
+
+.chat-msg .chat-user::after {
+	content: ":";
+	color: var(--text-color);
+	font-weight: normal;
+	margin-right: 4px;
+}
+
+.chat-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: flex-end;
+}
+
+.chat-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex: 0 0 auto;
+}
+
+.chat-field-grow {
+	flex: 1 1 200px;
+}
+
+.chat-field span {
+	font-size: 13px;
+	opacity: 0.7;
+}
+
+.chat-form input {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: var(--font-size-regular);
+	color: var(--text-color);
+	background-color: transparent;
+	border: none;
+	border-bottom: 1px solid var(--text-color);
+	padding: 4px 0;
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.chat-form input:focus {
+	outline: none;
+	border-bottom-color: var(--link-color-dark);
+}
+
+.chat-form #chat-user {
+	width: 100px;
+}
+
+.chat-form button {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: var(--font-size-regular);
+	color: var(--link-color-dark);
+	background-color: transparent;
+	border: 1px solid var(--link-color-dark);
+	padding: 4px 12px;
+	cursor: pointer;
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.chat-form button:hover {
+	background-color: var(--link-color-dark);
+	color: var(--background-color);
+}
+
+.chat-form button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.chat-form button:disabled:hover {
+	background-color: transparent;
+	color: var(--link-color-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+	.chat-status.connected::before {
+		color: var(--palette-peach);
+	}
+}
+
 @media (min-width: 700px) {
 	.container {
 		margin-left: auto;

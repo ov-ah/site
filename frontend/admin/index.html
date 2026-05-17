@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ovah.dev · admin</title>
+	<link rel="stylesheet" href="../styles.css?v=2">
+	<link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+	<div class="container">
+		<nav>
+			<div id="logo"></div>
+			<div id="nav-items">
+				<div class="nav-left">
+					<a href="/">home</a>
+					·
+					<a href="/about">about</a>
+					·
+					<a href="/chat">chat</a>
+				</div>
+				<div class="nav-right" id="nav-auth">
+					<a href="/login">login</a>
+					·
+					<a href="/register">register</a>
+				</div>
+			</div>
+		</nav>
+		<section>
+			<p>admin.</p>
+		</section>
+		<section class="admin-panel">
+			<div class="admin-tabs">
+				<button class="admin-tab active" data-tab="users">users</button>
+				<span class="tab-sep">·</span>
+				<button class="admin-tab" data-tab="ips">ips</button>
+				<span class="tab-sep">·</span>
+				<button class="admin-tab" data-tab="messages">messages</button>
+			</div>
+
+			<div id="tab-users" class="tab-content">
+				<p class="admin-status" id="users-status">loading...</p>
+				<table class="admin-table" id="users-table" style="display:none">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>username</th>
+							<th>color</th>
+							<th>admin</th>
+							<th>msgs</th>
+							<th>last ip</th>
+						</tr>
+					</thead>
+					<tbody id="users-tbody"></tbody>
+				</table>
+			</div>
+
+			<div id="tab-ips" class="tab-content" style="display:none">
+				<p class="admin-status" id="ips-status">loading...</p>
+				<table class="admin-table" id="ips-table" style="display:none">
+					<thead>
+						<tr>
+							<th>ip</th>
+							<th>accounts</th>
+							<th>messages</th>
+							<th>last seen</th>
+						</tr>
+					</thead>
+					<tbody id="ips-tbody"></tbody>
+				</table>
+			</div>
+
+			<div id="tab-messages" class="tab-content" style="display:none">
+				<div class="admin-filters">
+					<input type="text" class="admin-filter-input" id="filter-user" placeholder="user">
+					<input type="text" class="admin-filter-input" id="filter-ip" placeholder="ip">
+					<button class="admin-btn" id="filter-apply">filter</button>
+					<button class="admin-btn muted" id="filter-clear">clear</button>
+				</div>
+				<p class="admin-status" id="messages-status">loading...</p>
+				<table class="admin-table" id="messages-table" style="display:none">
+					<thead>
+						<tr>
+							<th>time</th>
+							<th>user</th>
+							<th>ip</th>
+							<th>message</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody id="messages-tbody"></tbody>
+				</table>
+			</div>
+		</section>
+		<footer>
+			<p>
+				<a href="/">home</a>
+				·
+				<a href="/about">about</a>
+				·
+				<a href="/chat">chat</a>
+				·
+				<a href="#">top</a>
+			</p>
+			<p>
+				©
+				<a href="/">ovah</a>
+			</p>
+			<p>
+				🐇
+			</p>
+		</footer>
+	</div>
+	<script src="../nav-auth.js"></script>
+	<script src="admin.js"></script>
+</body>
+
+</html>

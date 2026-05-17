@@ -1,7 +1,19 @@
 :8080 {
-	@api path /ws /history /me /register /login /logout
+	@api_post {
+		method POST
+		path /register* /login* /logout*
+	}
+	handle @api_post {
+		reverse_proxy 127.0.0.1:3000
+	}
 
-	handle @api {
+	handle /ws* {
+		reverse_proxy 127.0.0.1:3000
+	}
+	handle /history* {
+		reverse_proxy 127.0.0.1:3000
+	}
+	handle /me* {
 		reverse_proxy 127.0.0.1:3000
 	}
 

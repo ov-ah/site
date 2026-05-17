@@ -24,10 +24,9 @@
 	function formatTime(iso) {
 		try {
 			const d = new Date(iso);
-			let h = d.getHours();
+			const h = String(d.getHours()).padStart(2, '0');
 			const m = String(d.getMinutes()).padStart(2, '0');
 			const s = String(d.getSeconds()).padStart(2, '0');
-			h = String(h).padStart(2, '0');
 			return `${h}:${m}:${s}`;
 		} catch {
 			return '';
@@ -43,20 +42,16 @@
 			.replace(/'/g, '&#39;');
 	}
 
-	// validate a hex color so we don't inject arbitrary CSS
 	function safeColor(c) {
 		if (typeof c !== 'string') return null;
 		return /^#[0-9a-fA-F]{6}$/.test(c) ? c : null;
 	}
 
 	function clearEmpty() {
-		const empty = messagesEl.querySelector('.chat-empty');
-		if (empty) empty.remove();
+		messagesEl.querySelector('.chat-empty')?.remove();
 	}
 
 	function buildUserLabel(msg) {
-		// for logged-in users: "username [#42]"
-		// for anon: just the anon handle, no UID
 		const name = escapeHtml(msg.user);
 		const color = safeColor(msg.color);
 		const style = color ? ` style="color: ${color}"` : '';
@@ -70,7 +65,6 @@
 		if (!msg.is_anon) {
 			return `<span class="chat-text">${escapeHtml(msg.text)}</span>`;
 		}
-		// anon: show **** matched to length, real text revealed on hover/click
 		const mask = '*'.repeat(Math.min(msg.text.length, 40));
 		return `<span class="chat-text">` +
 			`<span class="chat-mask">${mask}</span>` +
@@ -88,8 +82,7 @@
 			buildTextHtml(msg);
 
 		if (msg.is_anon) {
-			const textSpan = p.querySelector('.chat-text');
-			textSpan.addEventListener('click', () => {
+			p.querySelector('.chat-text').addEventListener('click', () => {
 				p.classList.toggle('revealed');
 			});
 		}
@@ -114,7 +107,7 @@
 				messages.forEach(appendMessage);
 				messagesEl.scrollTop = messagesEl.scrollHeight;
 			}
-		} catch (err) {
+		} catch {
 			messagesEl.innerHTML = '';
 			const empty = document.createElement('p');
 			empty.className = 'chat-empty';
@@ -149,11 +142,8 @@
 
 		ws.addEventListener('message', (ev) => {
 			try {
-				const msg = JSON.parse(ev.data);
-				appendMessage(msg);
-			} catch {
-				// ignore malformed
-			}
+				appendMessage(JSON.parse(ev.data));
+			} catch {}
 		});
 
 		ws.addEventListener('close', () => {
@@ -162,9 +152,7 @@
 			scheduleReconnect();
 		});
 
-		ws.addEventListener('error', () => {
-			// close handler will follow
-		});
+		ws.addEventListener('error', () => {});
 	}
 
 	function scheduleReconnect() {
@@ -180,8 +168,7 @@
 	formEl.addEventListener('submit', (e) => {
 		e.preventDefault();
 		const text = textEl.value.trim();
-		if (!text) return;
-		if (!ws || ws.readyState !== WebSocket.OPEN) return;
+		if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
 		ws.send(JSON.stringify({ text }));
 		textEl.value = '';
 	});

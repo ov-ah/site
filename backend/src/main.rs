@@ -9,7 +9,6 @@ use axum::{
     routing::{get, post},
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
-
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
@@ -84,7 +83,6 @@ async fn main() {
     .await
     .unwrap();
 
-    // backfill if upgrading from older schema; ignore error if column already exists
     let _ = sqlx::query("ALTER TABLE messages ADD COLUMN is_anon INTEGER NOT NULL DEFAULT 0")
         .execute(&db)
         .await;
@@ -114,7 +112,7 @@ async fn main() {
     .await
     .unwrap();
 
-    let (tx, _rx) = broadcast::channel::<String>(100);
+    let (tx, _rx) = broadcast::channel(100);
     let state = Arc::new(AppState { tx, db });
 
     let app = Router::new()
@@ -134,8 +132,6 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-// resolves a session cookie to (username, uid, chat_color). returns None for
-// anon/invalid/expired sessions. cleans up expired sessions lazily.
 async fn resolve_user(db: &SqlitePool, jar: &CookieJar) -> Option<(String, i64, String)> {
     let token = jar.get("session")?.value().to_string();
 
@@ -177,39 +173,54 @@ async fn me_handler(State(state): State<Arc<AppState>>, jar: CookieJar) -> impl 
     }
 }
 
+struct HistoryRow {
+    id: String,
+    user: String,
+    text: String,
+    ts: String,
+    is_anon: i64,
+    uid: Option<i64>,
+    color: Option<String>,
+}
+
+impl sqlx::FromRow<'_, sqlx::sqlite::SqliteRow> for HistoryRow {
+    fn from_row(row: &sqlx::sqlite::SqliteRow) -> sqlx::Result<Self> {
+        use sqlx::Row;
+        Ok(Self {
+            id: row.try_get("id")?,
+            user: row.try_get("user")?,
+            text: row.try_get("text")?,
+            ts: row.try_get("ts")?,
+            is_anon: row.try_get("is_anon")?,
+            uid: row.try_get("uid")?,
+            color: row.try_get("chat_color")?,
+        })
+    }
+}
+
 async fn history_handler(State(state): State<Arc<AppState>>) -> Json<Vec<ChatMessage>> {
-    // LEFT JOIN users so anon (and deleted-user) messages still come through.
-    // for anon messages we ignore the joined user values regardless.
-    let rows: Vec<(
-        String,
-        String,
-        String,
-        String,
-        i64,
-        Option<i64>,
-        Option<String>,
-    )> = sqlx::query_as(
+    let rows: Vec<HistoryRow> = sqlx::query_as(
         "SELECT m.id, m.user, m.text, m.ts, m.is_anon, u.uid, u.chat_color \
-             FROM messages m LEFT JOIN users u ON m.user = u.username \
-             ORDER BY m.ts DESC LIMIT 50",
+         FROM messages m LEFT JOIN users u ON m.user = u.username \
+         ORDER BY m.ts DESC LIMIT 50",
     )
     .fetch_all(&state.db)
     .await
     .unwrap_or_default();
 
-    let messages: Vec<ChatMessage> = rows
+    let messages = rows
         .into_iter()
         .rev()
-        .map(|(id, user, text, ts, is_anon, uid, color)| {
-            let is_anon_bool = is_anon != 0;
+        .map(|r| {
+            let anon = r.is_anon != 0;
             ChatMessage {
-                id,
-                user,
-                uid: if is_anon_bool { None } else { uid },
-                color: if is_anon_bool { None } else { color },
-                text,
-                ts: ts.parse().unwrap_or_else(|_| chrono::Utc::now()),
-                is_anon: is_anon_bool,
+                id: r.id,
+                user: r.user,
+                uid: if anon { None } else { r.uid },
+                color: if anon { None } else { r.color },
+                text: r.text,
+                ts: r.ts.parse().unwrap_or_else(|_| Utc::now()),
+                is_anon: anon,
             }
         })
         .collect();
@@ -356,25 +367,18 @@ async fn register_handler(
     Json(payload): Json<RegisterRequest>,
 ) -> impl IntoResponse {
     if let Err(msg) = validate_credentials(&payload.username, &payload.password) {
-        return (jar, (StatusCode::BAD_REQUEST, msg).into_response()).into_response();
+        return (jar, (StatusCode::BAD_REQUEST, msg)).into_response();
     }
 
     let password_hash = match hash_password(&payload.password) {
         Ok(h) => h,
-        Err(_) => {
-            return (
-                jar,
-                (StatusCode::INTERNAL_SERVER_ERROR, "hash failed").into_response(),
-            )
-                .into_response();
-        }
+        Err(_) => return (jar, (StatusCode::INTERNAL_SERVER_ERROR, "hash failed")).into_response(),
     };
 
     let user_id = Uuid::new_v4().to_string();
 
     let insert_result = sqlx::query(
-        "INSERT INTO users (id, username, password_hash, created_at)
-         VALUES (?, ?, ?, ?)",
+        "INSERT INTO users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)",
     )
     .bind(&user_id)
     .bind(&payload.username)
@@ -384,36 +388,21 @@ async fn register_handler(
     .await;
 
     if let Err(e) = insert_result {
-        let msg = if let sqlx::Error::Database(db_err) = &e {
-            if db_err.message().contains("UNIQUE") {
-                "username already taken"
-            } else {
-                "db error"
-            }
+        let is_conflict = matches!(&e, sqlx::Error::Database(d) if d.message().contains("UNIQUE"));
+        return if is_conflict {
+            (jar, (StatusCode::CONFLICT, "username already taken")).into_response()
         } else {
-            "db error"
+            (jar, (StatusCode::INTERNAL_SERVER_ERROR, "db error")).into_response()
         };
-        let status = if msg == "username already taken" {
-            StatusCode::CONFLICT
-        } else {
-            StatusCode::INTERNAL_SERVER_ERROR
-        };
-        return (jar, (status, msg).into_response()).into_response();
     }
 
     let token = match create_session(&state.db, &user_id).await {
         Ok(t) => t,
-        Err(_) => {
-            return (
-                jar,
-                (StatusCode::INTERNAL_SERVER_ERROR, "session failed").into_response(),
-            )
-                .into_response();
-        }
+        Err(_) => return (jar, (StatusCode::INTERNAL_SERVER_ERROR, "session failed")).into_response(),
     };
 
     let jar = jar.add(session_cookie(token));
-    (jar, (StatusCode::OK, "registered").into_response()).into_response()
+    (jar, StatusCode::OK).into_response()
 }
 
 async fn login_handler(
@@ -430,50 +419,28 @@ async fn login_handler(
 
     let (user_id, stored_hash) = match row {
         Some(r) => r,
-        None => {
-            return (
-                jar,
-                (StatusCode::UNAUTHORIZED, "invalid credentials").into_response(),
-            )
-                .into_response();
-        }
+        None => return (jar, (StatusCode::UNAUTHORIZED, "invalid credentials")).into_response(),
     };
 
     let parsed_hash = match PasswordHash::new(&stored_hash) {
         Ok(h) => h,
-        Err(_) => {
-            return (
-                jar,
-                (StatusCode::INTERNAL_SERVER_ERROR, "hash parse error").into_response(),
-            )
-                .into_response();
-        }
+        Err(_) => return (jar, (StatusCode::INTERNAL_SERVER_ERROR, "hash parse error")).into_response(),
     };
 
     if Argon2::default()
         .verify_password(payload.password.as_bytes(), &parsed_hash)
         .is_err()
     {
-        return (
-            jar,
-            (StatusCode::UNAUTHORIZED, "invalid credentials").into_response(),
-        )
-            .into_response();
+        return (jar, (StatusCode::UNAUTHORIZED, "invalid credentials")).into_response();
     }
 
     let token = match create_session(&state.db, &user_id).await {
         Ok(t) => t,
-        Err(_) => {
-            return (
-                jar,
-                (StatusCode::INTERNAL_SERVER_ERROR, "session failed").into_response(),
-            )
-                .into_response();
-        }
+        Err(_) => return (jar, (StatusCode::INTERNAL_SERVER_ERROR, "session failed")).into_response(),
     };
 
     let jar = jar.add(session_cookie(token));
-    (jar, (StatusCode::OK, "logged in").into_response()).into_response()
+    (jar, StatusCode::OK).into_response()
 }
 
 async fn logout_handler(State(state): State<Arc<AppState>>, jar: CookieJar) -> impl IntoResponse {
@@ -485,5 +452,5 @@ async fn logout_handler(State(state): State<Arc<AppState>>, jar: CookieJar) -> i
     }
 
     let jar = jar.remove(Cookie::from("session"));
-    (jar, (StatusCode::OK, "logged out").into_response()).into_response()
+    (jar, StatusCode::OK).into_response()
 }

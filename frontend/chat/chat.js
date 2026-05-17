@@ -13,9 +13,8 @@
 	let reconnectAttempts = 0;
 	let reconnectTimer = null;
 
-	function setStatus(text, cls) {
+	function setStatus(text) {
 		statusEl.textContent = text;
-		statusEl.className = 'chat-status' + (cls ? ' ' + cls : '');
 	}
 
 	function setIdentity(text) {
@@ -25,26 +24,11 @@
 	function formatTime(iso) {
 		try {
 			const d = new Date(iso);
-			const now = new Date();
-			const sameDay =
-				d.getFullYear() === now.getFullYear() &&
-				d.getMonth() === now.getMonth() &&
-				d.getDate() === now.getDate();
-
-			if (sameDay) {
-				let h = d.getHours();
-				const m = String(d.getMinutes()).padStart(2, '0');
-				const s = String(d.getSeconds()).padStart(2, '0');
-				const ampm = h >= 12 ? 'pm' : 'am';
-				h = h % 12;
-				if (h === 0) h = 12;
-				return `${h}:${m}:${s}${ampm}`;
-			} else {
-				const yyyy = d.getFullYear();
-				const mm = String(d.getMonth() + 1).padStart(2, '0');
-				const dd = String(d.getDate()).padStart(2, '0');
-				return `${yyyy}-${mm}-${dd}`;
-			}
+			let h = d.getHours();
+			const m = String(d.getMinutes()).padStart(2, '0');
+			const s = String(d.getSeconds()).padStart(2, '0');
+			h = String(h).padStart(2, '0');
+			return `${h}:${m}:${s}`;
 		} catch {
 			return '';
 		}
@@ -59,9 +43,39 @@
 			.replace(/'/g, '&#39;');
 	}
 
+	// validate a hex color so we don't inject arbitrary CSS
+	function safeColor(c) {
+		if (typeof c !== 'string') return null;
+		return /^#[0-9a-fA-F]{6}$/.test(c) ? c : null;
+	}
+
 	function clearEmpty() {
 		const empty = messagesEl.querySelector('.chat-empty');
 		if (empty) empty.remove();
+	}
+
+	function buildUserLabel(msg) {
+		// for logged-in users: "username [#42]"
+		// for anon: just the anon handle, no UID
+		const name = escapeHtml(msg.user);
+		const color = safeColor(msg.color);
+		const style = color ? ` style="color: ${color}"` : '';
+		if (msg.is_anon || msg.uid == null) {
+			return `<span class="chat-user"${style}>${name}</span>`;
+		}
+		return `<span class="chat-user"${style}>${name} [#${msg.uid}]</span>`;
+	}
+
+	function buildTextHtml(msg) {
+		if (!msg.is_anon) {
+			return `<span class="chat-text">${escapeHtml(msg.text)}</span>`;
+		}
+		// anon: show **** matched to length, real text revealed on hover/click
+		const mask = '*'.repeat(Math.min(msg.text.length, 40));
+		return `<span class="chat-text">` +
+			`<span class="chat-mask">${mask}</span>` +
+			`<span class="chat-real">${escapeHtml(msg.text)}</span>` +
+			`</span>`;
 	}
 
 	function appendMessage(msg) {
@@ -70,10 +84,9 @@
 		p.className = 'chat-msg' + (msg.is_anon ? ' is-anon' : '');
 		p.innerHTML =
 			`<span class="chat-meta">${formatTime(msg.ts)}</span>` +
-			`<span class="chat-user">${escapeHtml(msg.user)}</span>` +
-			`<span class="chat-text">${escapeHtml(msg.text)}</span>`;
+			buildUserLabel(msg) + ' ' +
+			buildTextHtml(msg);
 
-		// for anon messages, also reveal on click (helps on touch devices)
 		if (msg.is_anon) {
 			const textSpan = p.querySelector('.chat-text');
 			textSpan.addEventListener('click', () => {
@@ -115,22 +128,22 @@
 			const res = await fetch(`${HTTP_BASE}/me`, { credentials: 'same-origin' });
 			if (res.ok) {
 				const me = await res.json();
-				setIdentity(`logged in as ${me.username}`);
+				setIdentity(`${me.username} [#${me.uid}]`);
 			} else {
-				setIdentity('not logged in — messages sent as anon');
+				setIdentity('anon');
 			}
 		} catch {
-			setIdentity('not logged in — messages sent as anon');
+			setIdentity('anon');
 		}
 	}
 
 	function connect() {
-		setStatus('connecting...', '');
+		setStatus('connecting...');
 		ws = new WebSocket(WS_URL);
 
 		ws.addEventListener('open', () => {
 			reconnectAttempts = 0;
-			setStatus('connected', 'connected');
+			setStatus('connected');
 			sendBtn.disabled = false;
 		});
 
@@ -145,7 +158,7 @@
 
 		ws.addEventListener('close', () => {
 			sendBtn.disabled = true;
-			setStatus('disconnected. retrying...', 'disconnected');
+			setStatus('disconnected. retrying...');
 			scheduleReconnect();
 		});
 
@@ -169,7 +182,6 @@
 		const text = textEl.value.trim();
 		if (!text) return;
 		if (!ws || ws.readyState !== WebSocket.OPEN) return;
-		// server determines the sender from the session cookie now
 		ws.send(JSON.stringify({ text }));
 		textEl.value = '';
 	});

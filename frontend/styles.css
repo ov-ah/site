@@ -94,24 +94,17 @@ nav {
 	gap: 20px;
 }
 
+/* chat — log-style, no boxes, no bold, single line per message */
 .chat {
 	display: flex;
 	flex-direction: column;
-	gap: 15px;
+	gap: 4px;
 }
 
 .chat-status {
 	font-size: 14px;
 	color: var(--muted-text-color);
-}
-
-.chat-status.connected::before {
-	content: "● ";
-	color: var(--palette-dragon);
-}
-
-.chat-status.disconnected::before {
-	content: "○ ";
+	opacity: 0.7;
 }
 
 .chat-identity {
@@ -123,12 +116,10 @@ nav {
 .chat-messages {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	height: 400px;
+	gap: 2px;
+	max-height: 400px;
 	overflow-y: auto;
-	padding: 15px;
-	border: 1px solid var(--text-color);
-	background-color: var(--background-color);
+	padding: 0;
 }
 
 .chat-empty {
@@ -141,58 +132,68 @@ nav {
 	margin: 0;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
+	font-size: 14px;
+	line-height: 1.5;
 }
 
-.chat-msg .chat-meta {
+.chat-meta {
 	color: var(--muted-text-color);
-	font-size: 13px;
-	margin-right: 8px;
+	opacity: 0.5;
+	margin-right: 6px;
 }
 
-.chat-msg .chat-user {
-	color: var(--link-color-dark);
-	font-weight: bold;
+.chat-user {
+	margin-right: 6px;
 }
 
-.chat-msg .chat-user::after {
+.chat-user::after {
 	content: ":";
-	color: var(--text-color);
-	font-weight: normal;
-	margin-right: 4px;
+	opacity: 0.5;
 }
 
 .chat-msg.is-anon .chat-user {
-	opacity: 0.6;
-	font-weight: normal;
-	font-style: italic;
+	opacity: 0.5;
 }
 
-/* anon messages: text blurred until hover */
+.chat-text {
+	white-space: pre-wrap;
+}
+
+/* anon messages: text masked with **** until hover or click */
 .chat-msg.is-anon .chat-text {
-	filter: blur(4px);
 	cursor: pointer;
-	transition: filter 0.15s ease;
-	user-select: none;
 }
 
-.chat-msg.is-anon .chat-text:hover,
-.chat-msg.is-anon .chat-text:focus,
-.chat-msg.is-anon.revealed .chat-text {
-	filter: none;
-	user-select: text;
+.chat-msg.is-anon .chat-text .chat-mask {
+	display: inline;
+}
+
+.chat-msg.is-anon .chat-text .chat-real {
+	display: none;
+}
+
+.chat-msg.is-anon .chat-text:hover .chat-mask,
+.chat-msg.is-anon.revealed .chat-text .chat-mask {
+	display: none;
+}
+
+.chat-msg.is-anon .chat-text:hover .chat-real,
+.chat-msg.is-anon.revealed .chat-text .chat-real {
+	display: inline;
 }
 
 .chat-form {
 	display: flex;
 	gap: 10px;
 	align-items: stretch;
+	margin-top: 10px;
 }
 
 .chat-input {
 	flex: 1 1 auto;
 	min-width: 0;
 	font-family: 'JetBrains Mono', monospace;
-	font-size: var(--font-size-regular);
+	font-size: 14px;
 	color: var(--text-color);
 	background-color: transparent;
 	border: none;
@@ -209,18 +210,17 @@ nav {
 .chat-form button {
 	flex: 0 0 auto;
 	font-family: 'JetBrains Mono', monospace;
-	font-size: var(--font-size-regular);
-	color: var(--link-color-dark);
+	font-size: 14px;
+	color: var(--link-color);
 	background-color: transparent;
-	border: 1px solid var(--link-color-dark);
-	padding: 4px 12px;
+	border: none;
+	padding: 4px 0;
 	cursor: pointer;
 	letter-spacing: var(--font-text-spacing-regular);
 }
 
 .chat-form button:hover {
-	background-color: var(--link-color-dark);
-	color: var(--background-color);
+	text-decoration: underline;
 }
 
 .chat-form button:disabled {
@@ -229,8 +229,7 @@ nav {
 }
 
 .chat-form button:disabled:hover {
-	background-color: transparent;
-	color: var(--link-color-dark);
+	text-decoration: none;
 }
 
 /* auth pages (login/register) */
@@ -269,17 +268,16 @@ nav {
 	align-self: flex-start;
 	font-family: 'JetBrains Mono', monospace;
 	font-size: var(--font-size-regular);
-	color: var(--link-color-dark);
+	color: var(--link-color);
 	background-color: transparent;
-	border: 1px solid var(--link-color-dark);
-	padding: 4px 12px;
+	border: none;
+	padding: 4px 0;
 	cursor: pointer;
 	letter-spacing: var(--font-text-spacing-regular);
 }
 
 .auth-form button:hover {
-	background-color: var(--link-color-dark);
-	color: var(--background-color);
+	text-decoration: underline;
 }
 
 .auth-message {
@@ -289,12 +287,6 @@ nav {
 
 .auth-message.error {
 	color: var(--palette-dragon);
-}
-
-@media (prefers-color-scheme: dark) {
-	.chat-status.connected::before {
-		color: var(--palette-peach);
-	}
 }
 
 @media (min-width: 700px) {
@@ -316,6 +308,11 @@ nav {
 	}
 
 	a {
+		color: var(--link-color-dark);
+	}
+
+	.chat-form button,
+	.auth-form button {
 		color: var(--link-color-dark);
 	}
 

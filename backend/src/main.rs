@@ -36,11 +36,11 @@ struct ChatMessage {
     user: String,
     text: String,
     ts: chrono::DateTime<chrono::Utc>,
+    is_anon: bool,
 }
 
 #[derive(Deserialize)]
 struct IncomingMessage {
-    user: String,
     text: String,
 }
 
@@ -56,6 +56,13 @@ struct LoginRequest {
     password: String,
 }
 
+#[derive(Serialize)]
+struct MeResponse {
+    username: String,
+    uid: i64,
+    chat_color: String,
+}
+
 #[tokio::main]
 async fn main() {
     let db = SqlitePool::connect("sqlite://chat.db?mode=rwc")
@@ -67,12 +74,19 @@ async fn main() {
             id TEXT PRIMARY KEY,
             user TEXT NOT NULL,
             text TEXT NOT NULL,
-            ts TEXT NOT NULL
+            ts TEXT NOT NULL,
+            is_anon INTEGER NOT NULL DEFAULT 0
         )",
     )
     .execute(&db)
     .await
     .unwrap();
+
+    // backfill: add is_anon column if upgrading from old schema. Ignore error if it
+    // already exists.
+    let _ = sqlx::query("ALTER TABLE messages ADD COLUMN is_anon INTEGER NOT NULL DEFAULT 0")
+        .execute(&db)
+        .await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS users (
@@ -109,6 +123,7 @@ async fn main() {
         .route("/register", post(register_handler))
         .route("/login", post(login_handler))
         .route("/logout", post(logout_handler))
+        .route("/me", get(me_handler))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
@@ -118,36 +133,109 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn history_handler(State(state): State<Arc<AppState>>) -> Json<Vec<ChatMessage>> {
-    let rows: Vec<(String, String, String, String)> =
-        sqlx::query_as("SELECT id, user, text, ts FROM messages ORDER BY ts DESC LIMIT 50")
-            .fetch_all(&state.db)
+// resolve a session cookie into the user's username, or None if anon/invalid/expired.
+// also cleans up expired sessions lazily.
+async fn resolve_user(db: &SqlitePool, jar: &CookieJar) -> Option<String> {
+    let token = jar.get("session")?.value().to_string();
+
+    let row: Option<(String, String)> =
+        sqlx::query_as("SELECT u.username, s.expires_at FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = ?")
+            .bind(&token)
+            .fetch_optional(db)
             .await
-            .unwrap_or_default();
+            .ok()
+            .flatten();
+
+    let (username, expires_at) = row?;
+
+    // check expiration
+    if let Ok(exp) = chrono::DateTime::parse_from_rfc3339(&expires_at) {
+        if exp.with_timezone(&Utc) < Utc::now() {
+            // expired: delete it and treat as anon
+            let _ = sqlx::query("DELETE FROM sessions WHERE token = ?")
+                .bind(&token)
+                .execute(db)
+                .await;
+            return None;
+        }
+    }
+
+    Some(username)
+}
+
+async fn me_handler(State(state): State<Arc<AppState>>, jar: CookieJar) -> impl IntoResponse {
+    let Some(username) = resolve_user(&state.db, &jar).await else {
+        return (StatusCode::UNAUTHORIZED, "not logged in").into_response();
+    };
+
+    let row: Option<(i64, String)> =
+        sqlx::query_as("SELECT uid, chat_color FROM users WHERE username = ?")
+            .bind(&username)
+            .fetch_optional(&state.db)
+            .await
+            .unwrap_or(None);
+
+    match row {
+        Some((uid, chat_color)) => Json(MeResponse {
+            username,
+            uid,
+            chat_color,
+        })
+        .into_response(),
+        None => (StatusCode::UNAUTHORIZED, "not logged in").into_response(),
+    }
+}
+
+async fn history_handler(State(state): State<Arc<AppState>>) -> Json<Vec<ChatMessage>> {
+    let rows: Vec<(String, String, String, String, i64)> = sqlx::query_as(
+        "SELECT id, user, text, ts, is_anon FROM messages ORDER BY ts DESC LIMIT 50",
+    )
+    .fetch_all(&state.db)
+    .await
+    .unwrap_or_default();
 
     let messages: Vec<ChatMessage> = rows
         .into_iter()
         .rev()
-        .map(|(id, user, text, ts)| ChatMessage {
+        .map(|(id, user, text, ts, is_anon)| ChatMessage {
             id,
             user,
             text,
             ts: ts.parse().unwrap_or_else(|_| chrono::Utc::now()),
+            is_anon: is_anon != 0,
         })
         .collect();
 
     Json(messages)
 }
 
-async fn ws_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    ws.on_upgrade(|socket| handle_socket(socket, state))
+async fn ws_handler(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+    jar: CookieJar,
+) -> impl IntoResponse {
+    // resolve the user once, at connect time. the websocket's identity is fixed
+    // for the lifetime of the connection.
+    let username = resolve_user(&state.db, &jar).await;
+    ws.on_upgrade(move |socket| handle_socket(socket, state, username))
 }
 
-async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
+async fn handle_socket(socket: WebSocket, state: Arc<AppState>, username: Option<String>) {
     let (mut sender, mut receiver) = socket.split();
     let mut rx = state.tx.subscribe();
 
-    // forward broadcast message out to this client
+    // for anonymous users, generate a per-connection identifier like "anon#7f3a".
+    // logged-in users use their real username.
+    let (display_name, is_anon) = match username {
+        Some(name) => (name, false),
+        None => {
+            let mut bytes = [0u8; 2];
+            OsRng.fill_bytes(&mut bytes);
+            (format!("anon#{}", hex::encode(bytes)), true)
+        }
+    };
+
+    // forward broadcast messages out to this client
     let mut send_task = tokio::spawn(async move {
         while let Ok(msg) = rx.recv().await {
             if sender.send(Message::Text(msg)).await.is_err() {
@@ -157,25 +245,37 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
     });
 
     let state_clone = state.clone();
+    let display_name_clone = display_name.clone();
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             let Ok(incoming) = serde_json::from_str::<IncomingMessage>(&text) else {
                 println!("bad message format: {}", text);
                 continue;
             };
+
+            // basic length guard
+            let trimmed = incoming.text.trim();
+            if trimmed.is_empty() || trimmed.len() > 500 {
+                continue;
+            }
+
             let msg = ChatMessage {
-                id: uuid::Uuid::new_v4().to_string(),
-                user: incoming.user,
-                text: incoming.text,
-                ts: chrono::Utc::now(),
+                id: Uuid::new_v4().to_string(),
+                user: display_name_clone.clone(),
+                text: trimmed.to_string(),
+                ts: Utc::now(),
+                is_anon,
             };
-            let _ = sqlx::query("INSERT INTO messages (id, user, text, ts) VALUES (?, ?, ?, ?)")
-                .bind(&msg.id)
-                .bind(&msg.user)
-                .bind(&msg.text)
-                .bind(&msg.ts.to_rfc3339())
-                .execute(&state_clone.db)
-                .await;
+            let _ = sqlx::query(
+                "INSERT INTO messages (id, user, text, ts, is_anon) VALUES (?, ?, ?, ?, ?)",
+            )
+            .bind(&msg.id)
+            .bind(&msg.user)
+            .bind(&msg.text)
+            .bind(&msg.ts.to_rfc3339())
+            .bind(if msg.is_anon { 1 } else { 0 })
+            .execute(&state_clone.db)
+            .await;
             let json = serde_json::to_string(&msg).unwrap();
             println!("received from {}: {}", msg.user, msg.text);
             let _ = state_clone.tx.send(json);
@@ -223,11 +323,32 @@ async fn create_session(db: &SqlitePool, user_id: &str) -> Result<String, sqlx::
     Ok(token)
 }
 
+// basic input validation for username/password
+fn validate_credentials(username: &str, password: &str) -> Result<(), &'static str> {
+    if username.len() < 2 || username.len() > 32 {
+        return Err("username must be 2-32 characters");
+    }
+    if !username
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
+    {
+        return Err("username can only contain letters, numbers, _ and -");
+    }
+    if password.len() < 6 || password.len() > 128 {
+        return Err("password must be 6-128 characters");
+    }
+    Ok(())
+}
+
 async fn register_handler(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
     Json(payload): Json<RegisterRequest>,
 ) -> impl IntoResponse {
+    if let Err(msg) = validate_credentials(&payload.username, &payload.password) {
+        return (jar, (StatusCode::BAD_REQUEST, msg).into_response()).into_response();
+    }
+
     let password_hash = match hash_password(&payload.password) {
         Ok(h) => h,
         Err(_) => {
@@ -252,12 +373,23 @@ async fn register_handler(
     .execute(&state.db)
     .await;
 
-    if insert_result.is_err() {
-        return (
-            jar,
-            (StatusCode::INTERNAL_SERVER_ERROR, "db error").into_response(),
-        )
-            .into_response();
+    if let Err(e) = insert_result {
+        // distinguish duplicate username from other db errors
+        let msg = if let sqlx::Error::Database(db_err) = &e {
+            if db_err.message().contains("UNIQUE") {
+                "username already taken"
+            } else {
+                "db error"
+            }
+        } else {
+            "db error"
+        };
+        let status = if msg == "username already taken" {
+            StatusCode::CONFLICT
+        } else {
+            StatusCode::INTERNAL_SERVER_ERROR
+        };
+        return (jar, (status, msg).into_response()).into_response();
     }
 
     let token = match create_session(&state.db, &user_id).await {

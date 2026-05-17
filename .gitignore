@@ -4,3 +4,6 @@ backend/chat.db
 backend/chat.db-journal
 backend/chat.db-wal
 backend/chat.db-shm
+*.db
+cookies.txt
+backend/cookies.txt

@@ -22,7 +22,7 @@
 		</nav>
 		<section>
 			<p>
-				ovah.dev has the best chat trust! pick a name and say something.
+				ovah.dev has the best chat trust! say something.
 			</p>
 		</section>
 		<section class="chat">
@@ -31,15 +31,9 @@
 				<p class="chat-empty">loading history...</p>
 			</div>
 			<form class="chat-form" id="chat-form" autocomplete="off">
-				<label class="chat-field">
-					<span>name</span>
-					<input type="text" id="chat-user" maxlength="32" placeholder="anon" required>
-				</label>
-				<label class="chat-field chat-field-grow">
-					<span>say</span>
-					<input type="text" id="chat-text" maxlength="500" placeholder="..." required>
-				</label>
-				<button type="submit" id="chat-send">send</button>
+				<input type="text" id="chat-text" class="chat-input" maxlength="500" placeholder="say something..."
+					required>
+				<button type="submit" id="chat-send" disabled>send</button>
 			</form>
 		</section>
 		<footer>

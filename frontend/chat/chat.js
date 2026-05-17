@@ -2,24 +2,18 @@
 	const messagesEl = document.getElementById('chat-messages');
 	const statusEl = document.getElementById('chat-status');
 	const formEl = document.getElementById('chat-form');
-	const userEl = document.getElementById('chat-user');
 	const textEl = document.getElementById('chat-text');
 	const sendBtn = document.getElementById('chat-send');
 
-	// adjust these to wherever the rust backend is reachable
 	const HTTP_BASE = `${location.protocol}//${location.host}`;
 	const WS_URL = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`;
+
+	// hardcoded until auth is added
+	const USER = 'anon';
 
 	let ws = null;
 	let reconnectAttempts = 0;
 	let reconnectTimer = null;
-
-	// remember the name across visits
-	const savedUser = localStorage.getItem('chat-user');
-	if (savedUser) userEl.value = savedUser;
-	userEl.addEventListener('change', () => {
-		localStorage.setItem('chat-user', userEl.value.trim());
-	});
 
 	function setStatus(text, cls) {
 		statusEl.textContent = text;
@@ -77,7 +71,6 @@
 			`<span class="chat-user">${escapeHtml(msg.user)}</span>` +
 			`<span class="chat-text">${escapeHtml(msg.text)}</span>`;
 		messagesEl.appendChild(p);
-		// only autoscroll if user is near the bottom
 		const nearBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 80;
 		if (nearBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
 	}
@@ -132,7 +125,7 @@
 		});
 
 		ws.addEventListener('error', () => {
-			// close handler will pick this up
+			// close handler will follow
 		});
 	}
 
@@ -148,13 +141,11 @@
 
 	formEl.addEventListener('submit', (e) => {
 		e.preventDefault();
-		const user = userEl.value.trim() || 'anon';
 		const text = textEl.value.trim();
 		if (!text) return;
 		if (!ws || ws.readyState !== WebSocket.OPEN) return;
-		ws.send(JSON.stringify({ user, text }));
+		ws.send(JSON.stringify({ user: USER, text }));
 		textEl.value = '';
-		localStorage.setItem('chat-user', user);
 	});
 
 	loadHistory().then(connect);

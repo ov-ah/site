@@ -1,12 +1,12 @@
 :8080 {
-    handle /ws {
-        reverse_proxy 127.0.0.1:3000
-    }
-    handle /history {
-        reverse_proxy 127.0.0.1:3000
-    }
-    handle {
-        root * ./frontend
-        file_server
-    }
+	@api path /ws /history /me /register /login /logout
+
+	handle @api {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	handle {
+		root * ./frontend
+		file_server
+	}
 }

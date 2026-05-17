@@ -8,9 +8,9 @@
 		navAuth.innerHTML = '<a href="/login">login</a> · <a href="/register">register</a>';
 	}
 
-	function renderLoggedIn(username) {
+	function renderLoggedIn(me) {
 		const userSpan = document.createElement('span');
-		userSpan.textContent = username;
+		userSpan.textContent = me.username;
 
 		const logoutLink = document.createElement('a');
 		logoutLink.href = '#';
@@ -23,13 +23,22 @@
 			location.reload();
 		});
 
-		navAuth.replaceChildren(userSpan, document.createTextNode(' · '), logoutLink);
+		const nodes = [userSpan, document.createTextNode(' · '), logoutLink];
+
+		if (me.is_admin) {
+			const adminLink = document.createElement('a');
+			adminLink.href = '/admin';
+			adminLink.textContent = 'admin';
+			nodes.push(document.createTextNode(' · '), adminLink);
+		}
+
+		navAuth.replaceChildren(...nodes);
 	}
 
 	try {
 		const res = await fetch(`${base}/me`, { credentials: 'same-origin' });
 		if (res.ok) {
-			renderLoggedIn((await res.json()).username);
+			renderLoggedIn(await res.json());
 		} else {
 			renderLoggedOut();
 		}

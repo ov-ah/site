@@ -1,0 +1,163 @@
+.admin-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.admin-tabs {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.tab-sep {
+	color: var(--muted-text-color);
+	opacity: 0.5;
+}
+
+.admin-tab {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 14px;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	color: var(--muted-text-color);
+	opacity: 0.5;
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.admin-tab.active,
+.admin-tab:hover {
+	color: var(--text-color);
+	opacity: 1;
+}
+
+.admin-status {
+	font-size: 14px;
+	opacity: 0.5;
+	font-style: italic;
+	margin: 0;
+}
+
+.admin-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.admin-table th {
+	text-align: left;
+	font-weight: normal;
+	color: var(--muted-text-color);
+	opacity: 0.6;
+	padding: 2px 16px 8px 0;
+	border-bottom: 1px solid var(--text-color);
+}
+
+.admin-table td {
+	padding: 5px 16px 5px 0;
+	vertical-align: middle;
+	border-bottom: 1px solid var(--text-color);
+	opacity: 0.15;
+}
+
+.admin-table tr:hover td {
+	opacity: 1;
+}
+
+.admin-table td:last-child {
+	padding-right: 0;
+}
+
+.color-picker {
+	width: 18px;
+	height: 18px;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	border-radius: 2px;
+	vertical-align: middle;
+	background: none;
+}
+
+.admin-btn {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 14px;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	color: var(--link-color);
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.admin-btn:hover {
+	text-decoration: underline;
+}
+
+.admin-btn.muted {
+	color: var(--muted-text-color);
+	opacity: 0.5;
+}
+
+.admin-btn.danger {
+	color: var(--palette-dragon);
+}
+
+.admin-btn.danger:hover {
+	text-decoration: underline;
+}
+
+.multi-ip {
+	color: var(--palette-dragon);
+}
+
+.admin-filters {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.admin-filter-input {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 14px;
+	color: var(--text-color);
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--text-color);
+	padding: 2px 0;
+	width: 130px;
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.admin-filter-input:focus {
+	outline: none;
+	border-bottom-color: var(--link-color);
+}
+
+.msg-text {
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ip-link {
+	cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+	.admin-btn {
+		color: var(--link-color-dark);
+	}
+
+	.admin-btn.danger {
+		color: var(--palette-peach);
+	}
+
+	.multi-ip {
+		color: var(--palette-peach);
+	}
+}

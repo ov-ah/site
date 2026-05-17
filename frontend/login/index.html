@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>ovah.dev · chat</title>
+	<title>ovah.dev · login</title>
 	<link rel="stylesheet" href="../styles.css">
 </head>
 
@@ -28,24 +28,24 @@
 			</div>
 		</nav>
 		<section>
-			<p>
-				ovah.dev has the best chat trust! say something.
-			</p>
-			<p style="font-size: 14px; opacity: 0.7; margin-top: 8px;">
-				messages from anonymous users are blurred. hover to reveal. register to chat without a blur.
-			</p>
+			<p>log in.</p>
 		</section>
-		<section class="chat">
-			<div class="chat-identity" id="chat-identity"></div>
-			<div class="chat-status" id="chat-status">connecting...</div>
-			<div class="chat-messages" id="chat-messages">
-				<p class="chat-empty">loading history...</p>
-			</div>
-			<form class="chat-form" id="chat-form" autocomplete="off">
-				<input type="text" id="chat-text" class="chat-input" maxlength="500" placeholder="say something..."
-					required>
-				<button type="submit" id="chat-send" disabled>send</button>
+		<section>
+			<form class="auth-form" id="login-form" autocomplete="on">
+				<label>
+					username
+					<input type="text" id="login-username" autocomplete="username" required>
+				</label>
+				<label>
+					password
+					<input type="password" id="login-password" autocomplete="current-password" required>
+				</label>
+				<button type="submit">log in</button>
+				<div class="auth-message" id="login-message"></div>
 			</form>
+			<p style="font-size: 14px; opacity: 0.7; margin-top: 16px;">
+				no account? <a href="/register">register</a>.
+			</p>
 		</section>
 		<footer>
 			<p>
@@ -67,7 +67,7 @@
 		</footer>
 	</div>
 	<script src="../nav-auth.js"></script>
-	<script src="chat.js?v=3"></script>
+	<script src="login.js"></script>
 </body>
 
 </html>

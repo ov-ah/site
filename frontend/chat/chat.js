@@ -1,15 +1,13 @@
 (() => {
 	const messagesEl = document.getElementById('chat-messages');
 	const statusEl = document.getElementById('chat-status');
+	const identityEl = document.getElementById('chat-identity');
 	const formEl = document.getElementById('chat-form');
 	const textEl = document.getElementById('chat-text');
 	const sendBtn = document.getElementById('chat-send');
 
 	const HTTP_BASE = `${location.protocol}//${location.host}`;
 	const WS_URL = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`;
-
-	// hardcoded until auth is added
-	const USER = 'anon';
 
 	let ws = null;
 	let reconnectAttempts = 0;
@@ -18,6 +16,10 @@
 	function setStatus(text, cls) {
 		statusEl.textContent = text;
 		statusEl.className = 'chat-status' + (cls ? ' ' + cls : '');
+	}
+
+	function setIdentity(text) {
+		identityEl.textContent = text;
 	}
 
 	function formatTime(iso) {
@@ -65,11 +67,20 @@
 	function appendMessage(msg) {
 		clearEmpty();
 		const p = document.createElement('p');
-		p.className = 'chat-msg';
+		p.className = 'chat-msg' + (msg.is_anon ? ' is-anon' : '');
 		p.innerHTML =
 			`<span class="chat-meta">${formatTime(msg.ts)}</span>` +
 			`<span class="chat-user">${escapeHtml(msg.user)}</span>` +
 			`<span class="chat-text">${escapeHtml(msg.text)}</span>`;
+
+		// for anon messages, also reveal on click (helps on touch devices)
+		if (msg.is_anon) {
+			const textSpan = p.querySelector('.chat-text');
+			textSpan.addEventListener('click', () => {
+				p.classList.toggle('revealed');
+			});
+		}
+
 		messagesEl.appendChild(p);
 		const nearBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 80;
 		if (nearBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -77,7 +88,7 @@
 
 	async function loadHistory() {
 		try {
-			const res = await fetch(`${HTTP_BASE}/history`);
+			const res = await fetch(`${HTTP_BASE}/history`, { credentials: 'same-origin' });
 			if (!res.ok) throw new Error('history fetch failed');
 			const messages = await res.json();
 			messagesEl.innerHTML = '';
@@ -96,6 +107,20 @@
 			empty.className = 'chat-empty';
 			empty.textContent = 'could not load history.';
 			messagesEl.appendChild(empty);
+		}
+	}
+
+	async function loadIdentity() {
+		try {
+			const res = await fetch(`${HTTP_BASE}/me`, { credentials: 'same-origin' });
+			if (res.ok) {
+				const me = await res.json();
+				setIdentity(`logged in as ${me.username}`);
+			} else {
+				setIdentity('not logged in — messages sent as anon');
+			}
+		} catch {
+			setIdentity('not logged in — messages sent as anon');
 		}
 	}
 
@@ -144,9 +169,11 @@
 		const text = textEl.value.trim();
 		if (!text) return;
 		if (!ws || ws.readyState !== WebSocket.OPEN) return;
-		ws.send(JSON.stringify({ user: USER, text }));
+		// server determines the sender from the session cookie now
+		ws.send(JSON.stringify({ text }));
 		textEl.value = '';
 	});
 
+	loadIdentity();
 	loadHistory().then(connect);
 })();

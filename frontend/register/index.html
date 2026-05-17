@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ovah.dev · register</title>
+	<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+	<div class="container">
+		<nav>
+			<div id="logo"></div>
+			<div id="nav-items">
+				<div class="nav-left">
+					<a href="/">home</a>
+					·
+					<a href="/about">about</a>
+					·
+					<a href="/chat">chat</a>
+				</div>
+				<div class="nav-right" id="nav-auth">
+					<a href="/login">login</a>
+					·
+					<a href="/register">register</a>
+				</div>
+			</div>
+		</nav>
+		<section>
+			<p>register a new account.</p>
+			<p style="font-size: 14px; opacity: 0.7;">
+				username: 2-32 characters, letters/numbers/_/- only. password: 6-128 characters.
+				no email required, no password resets, pick something you'll remember.
+			</p>
+		</section>
+		<section>
+			<form class="auth-form" id="register-form" autocomplete="on">
+				<label>
+					username
+					<input type="text" id="register-username" autocomplete="username" required minlength="2"
+						maxlength="32">
+				</label>
+				<label>
+					password
+					<input type="password" id="register-password" autocomplete="new-password" required minlength="6"
+						maxlength="128">
+				</label>
+				<button type="submit">register</button>
+				<div class="auth-message" id="register-message"></div>
+			</form>
+			<p style="font-size: 14px; opacity: 0.7; margin-top: 16px;">
+				already have an account? <a href="/login">log in</a>.
+			</p>
+		</section>
+		<footer>
+			<p>
+				<a href="/">home</a>
+				·
+				<a href="/about">about</a>
+				·
+				<a href="/chat">chat</a>
+				·
+				<a href="#">top</a>
+			</p>
+			<p>
+				©
+				<a href="/">ovah</a>
+			</p>
+			<p>
+				🐇
+			</p>
+		</footer>
+	</div>
+	<script src="../nav-auth.js"></script>
+	<script src="register.js"></script>
+</body>
+
+</html>

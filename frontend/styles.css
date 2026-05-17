@@ -68,6 +68,21 @@ nav {
 	gap: 30px;
 }
 
+#nav-items {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.nav-left,
+.nav-right {
+	display: flex;
+	align-items: baseline;
+	gap: 0;
+}
+
 .container {
 	max-width: 600px;
 	margin-top: 50px;
@@ -97,6 +112,12 @@ nav {
 
 .chat-status.disconnected::before {
 	content: "○ ";
+}
+
+.chat-identity {
+	font-size: 14px;
+	color: var(--muted-text-color);
+	opacity: 0.7;
 }
 
 .chat-messages {
@@ -138,6 +159,27 @@ nav {
 	color: var(--text-color);
 	font-weight: normal;
 	margin-right: 4px;
+}
+
+.chat-msg.is-anon .chat-user {
+	opacity: 0.6;
+	font-weight: normal;
+	font-style: italic;
+}
+
+/* anon messages: text blurred until hover */
+.chat-msg.is-anon .chat-text {
+	filter: blur(4px);
+	cursor: pointer;
+	transition: filter 0.15s ease;
+	user-select: none;
+}
+
+.chat-msg.is-anon .chat-text:hover,
+.chat-msg.is-anon .chat-text:focus,
+.chat-msg.is-anon.revealed .chat-text {
+	filter: none;
+	user-select: text;
 }
 
 .chat-form {
@@ -191,6 +233,64 @@ nav {
 	color: var(--link-color-dark);
 }
 
+/* auth pages (login/register) */
+.auth-form {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	max-width: 320px;
+}
+
+.auth-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 14px;
+	color: var(--muted-text-color);
+}
+
+.auth-form input {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: var(--font-size-regular);
+	color: var(--text-color);
+	background-color: transparent;
+	border: none;
+	border-bottom: 1px solid var(--text-color);
+	padding: 4px 0;
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.auth-form input:focus {
+	outline: none;
+	border-bottom-color: var(--link-color-dark);
+}
+
+.auth-form button {
+	align-self: flex-start;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: var(--font-size-regular);
+	color: var(--link-color-dark);
+	background-color: transparent;
+	border: 1px solid var(--link-color-dark);
+	padding: 4px 12px;
+	cursor: pointer;
+	letter-spacing: var(--font-text-spacing-regular);
+}
+
+.auth-form button:hover {
+	background-color: var(--link-color-dark);
+	color: var(--background-color);
+}
+
+.auth-message {
+	font-size: 14px;
+	min-height: 1.4em;
+}
+
+.auth-message.error {
+	color: var(--palette-dragon);
+}
+
 @media (prefers-color-scheme: dark) {
 	.chat-status.connected::before {
 		color: var(--palette-peach);
@@ -217,5 +317,9 @@ nav {
 
 	a {
 		color: var(--link-color-dark);
+	}
+
+	.auth-message.error {
+		color: var(--palette-peach);
 	}
 }
